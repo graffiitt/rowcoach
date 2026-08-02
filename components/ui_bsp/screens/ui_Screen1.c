@@ -6,7 +6,7 @@
 #include "../ui.h"
 
 lv_obj_t * ui_Screen1 = NULL;
-lv_obj_t * ui_Button1 = NULL;
+lv_obj_t * ui_Image2 = NULL;
 lv_obj_t * ui_Label1 = NULL;
 // event funtions
 
@@ -17,23 +17,22 @@ void ui_Screen1_screen_init(void)
     ui_Screen1 = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_Screen1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
-    ui_Button1 = lv_btn_create(ui_Screen1);
-    lv_obj_set_width(ui_Button1, 100);
-    lv_obj_set_height(ui_Button1, 50);
-    lv_obj_set_x(ui_Button1, -110);
-    lv_obj_set_y(ui_Button1, -93);
-    lv_obj_set_align(ui_Button1, LV_ALIGN_CENTER);
-    lv_obj_add_flag(ui_Button1, LV_OBJ_FLAG_SCROLL_ON_FOCUS);     /// Flags
-    lv_obj_clear_flag(ui_Button1, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
+    ui_Image2 = lv_img_create(ui_Screen1);
+    lv_img_set_src(ui_Image2, &ui_img_start_img_400_png);
+    lv_obj_set_width(ui_Image2, LV_SIZE_CONTENT);   /// 400
+    lv_obj_set_height(ui_Image2, LV_SIZE_CONTENT);    /// 150
+    lv_obj_set_align(ui_Image2, LV_ALIGN_CENTER);
+    lv_obj_add_flag(ui_Image2, LV_OBJ_FLAG_ADV_HITTEST);     /// Flags
+    lv_obj_clear_flag(ui_Image2, LV_OBJ_FLAG_SCROLLABLE);      /// Flags
 
     ui_Label1 = lv_label_create(ui_Screen1);
     lv_obj_set_width(ui_Label1, LV_SIZE_CONTENT);   /// 1
     lv_obj_set_height(ui_Label1, LV_SIZE_CONTENT);    /// 1
-    lv_obj_set_x(ui_Label1, -112);
-    lv_obj_set_y(ui_Label1, -94);
+    lv_obj_set_x(ui_Label1, -2);
+    lv_obj_set_y(ui_Label1, 101);
     lv_obj_set_align(ui_Label1, LV_ALIGN_CENTER);
-    lv_obj_set_style_text_color(ui_Label1, lv_color_hex(0xFFFFFF), LV_PART_MAIN | LV_STATE_DEFAULT);
-    lv_obj_set_style_text_opa(ui_Label1, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
+    lv_label_set_text(ui_Label1, "SPEEDCOACH");
+    lv_obj_set_style_text_font(ui_Label1, &ui_font_NUMERIC2, LV_PART_MAIN | LV_STATE_DEFAULT);
 
 }
 
@@ -43,7 +42,7 @@ void ui_Screen1_screen_destroy(void)
 
     // NULL screen variables
     ui_Screen1 = NULL;
-    ui_Button1 = NULL;
+    ui_Image2 = NULL;
     ui_Label1 = NULL;
 
 }
