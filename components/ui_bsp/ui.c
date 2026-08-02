@@ -8,9 +8,6 @@
 
 ///////////////////// VARIABLES ////////////////////
 
-// EVENTS
-lv_obj_t * ui____initial_actions0;
-
 ///////////////////// ANIMATIONS ////////////////////
 
 ///////////////////// FUNCTIONS ////////////////////
@@ -23,11 +20,12 @@ void ui_init(void)
     lv_theme_t * theme = lv_theme_mono_init(dispp, false, LV_FONT_DEFAULT);
     lv_disp_set_theme(dispp, theme);
     ui_Screen1_screen_init();
-    ui____initial_actions0 = lv_obj_create(NULL);
+    ui_base_screen_init();
     lv_disp_load_scr(ui_Screen1);
 }
 
 void ui_destroy(void)
 {
     ui_Screen1_screen_destroy();
+    ui_base_screen_destroy();
 }

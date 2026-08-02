@@ -30,5 +30,5 @@ extern "C" void app_main(void) {
     UserApp_UiInit();
     Lvgl_unlock();
   }
-  // UserApp_TaskInit();
+  UserApp_TaskInit();
 }

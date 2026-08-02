@@ -12,23 +12,14 @@ extern "C" {
 
 #include "lvgl.h"
 
-#include "ui_helpers.h"
 #include "ui_events.h"
+#include "ui_helpers.h"
 
-
-///////////////////// SCREENS ////////////////////
-
-#include "screens/ui_Screen1.h"
-
-///////////////////// VARIABLES ////////////////////
-
-
-// EVENTS
-
-extern lv_obj_t * ui____initial_actions0;
+#include "ui_Screen1.h"
+#include "ui_base_screen.h"
 
 // IMAGES AND IMAGE SETS
-LV_IMG_DECLARE(ui_img_start_img_400_png);    // assets/start_img_400.png
+LV_IMG_DECLARE(ui_img_start_img_400_png); // assets/start_img_400.png
 
 // FONTS
 LV_FONT_DECLARE(ui_font_NUMERIC1);
