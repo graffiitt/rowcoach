@@ -42,10 +42,7 @@ static void Lvgl_port_task(void *arg)
   	  	if (task_delay_ms > LVGL_TASK_MAX_DELAY_MS)
   	  	{
   	  	  	task_delay_ms = LVGL_TASK_MAX_DELAY_MS;
-  	  	} else if (task_delay_ms < LVGL_TASK_MIN_DELAY_MS)
-  	  	{
-  	  	  	task_delay_ms = LVGL_TASK_MIN_DELAY_MS;
-  	  	}
+  	  	} 
   	  	vTaskDelay(pdMS_TO_TICKS(task_delay_ms));
   	}
 }
@@ -67,6 +64,7 @@ void Lvgl_PortInit(int width, int height,DispFlushCb flush_cb) {
   	disp_drv.ver_res = height;
   	disp_drv.flush_cb = flush_cb;
 	disp_drv.full_refresh = 1;
+	disp_drv.antialiasing = 0;
   	disp_drv.draw_buf = &disp_buf;
   	lv_disp_drv_register(&disp_drv);
 

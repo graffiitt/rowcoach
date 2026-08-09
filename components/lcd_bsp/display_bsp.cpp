@@ -3,6 +3,7 @@
 #include <freertos/FreeRTOS.h>
 #include <esp_log.h>
 #include "display_bsp.h"
+#include "esp_heap_caps.h"
 
 DisplayPort::DisplayPort(int mosi, int scl, int dc, int cs, int rst, int width, int height, spi_host_device_t spihost) : 
 mosi_(mosi), 
@@ -28,7 +29,7 @@ height_(height)
     esp_lcd_panel_io_spi_config_t io_config = {};
     io_config.dc_gpio_num = dc_;
     io_config.cs_gpio_num = cs_;
-    io_config.pclk_hz = 10 * 1000 * 1000;
+    io_config.pclk_hz = 20 * 1000 * 1000;
     io_config.lcd_cmd_bits = 8;
     io_config.lcd_param_bits = 8;
     io_config.spi_mode = 0;
@@ -47,7 +48,7 @@ height_(height)
     Set_ResetIOLevel(1);
 
     DisplayLen                = transfer >> 3; //(1byte 8ipex)
-    DispBuffer                = (uint8_t *) heap_caps_malloc(DisplayLen, MALLOC_CAP_SPIRAM);
+    DispBuffer                = (uint8_t *) heap_caps_malloc(DisplayLen, MALLOC_CAP_DMA);
     assert(DispBuffer);
 
 #if (AlgorithmOptimization == 3)

@@ -17,12 +17,13 @@ static void Lvgl_FlushCallback(lv_disp_drv_t *drv, const lv_area_t *area,
       RlcdPort.RLCD_SetPixel(x, y, color);
       buffer++;
     }
-  } 
+  }
   RlcdPort.RLCD_Display();
   lv_disp_flush_ready(drv);
 }
 
 extern "C" void app_main(void) {
+
   UserApp_AppInit();
   RlcdPort.RLCD_Init();
   Lvgl_PortInit(400, 300, Lvgl_FlushCallback);

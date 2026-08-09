@@ -4,6 +4,7 @@ lv_obj_t *ui_base_screen = NULL;
 
 lv_obj_t *ui_time_label = NULL;
 lv_obj_t *ui_line_top = NULL;
+lv_obj_t *ui_base_container = NULL;
 
 void ui_base_screen_init(void) {
   ui_base_screen = lv_obj_create(NULL);
