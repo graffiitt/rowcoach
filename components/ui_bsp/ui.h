@@ -17,6 +17,7 @@ extern "C" {
 
 #include "ui_Screen1.h"
 #include "ui_base_screen.h"
+#include "ui_start_menu.h"
 
 // IMAGES AND IMAGE SETS
 LV_IMG_DECLARE(ui_img_start_img_400_png); // assets/start_img_400.png

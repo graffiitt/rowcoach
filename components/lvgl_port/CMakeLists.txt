@@ -1,7 +1,8 @@
 idf_component_register(
     SRCS
     "lvgl_bsp.cpp"
-    PRIV_REQUIRES 
+    PRIV_REQUIRES
+    espressif__button 
     esp_timer
     REQUIRES
     lvgl__lvgl

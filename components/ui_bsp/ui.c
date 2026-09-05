@@ -4,7 +4,9 @@
 // Project name: speedcoach
 
 #include "ui.h"
+#include "ui_base_screen.h"
 #include "ui_helpers.h"
+#include "ui_start_menu.h"
 
 ///////////////////// VARIABLES ////////////////////
 
@@ -14,18 +16,20 @@
 
 ///////////////////// SCREENS ////////////////////
 
-void ui_init(void)
-{
-    lv_disp_t * dispp = lv_disp_get_default();
-    lv_theme_t * theme = lv_theme_mono_init(dispp, false, LV_FONT_DEFAULT);
-    lv_disp_set_theme(dispp, theme);
-    ui_Screen1_screen_init();
-    ui_base_screen_init();
-    lv_disp_load_scr(ui_Screen1);
+void ui_init(void) {
+  lv_disp_t *dispp = lv_disp_get_default();
+  lv_theme_t *theme = lv_theme_mono_init(dispp, false, LV_FONT_DEFAULT);
+  lv_disp_set_theme(dispp, theme);
+  ui_Screen1_screen_init();
+  ui_base_screen_init();
+  ui_start_menu_init();
+  
+  lv_disp_load_scr(ui_Screen1);
+  ui_base_screen_set_widget(ui_start_menu);
 }
 
-void ui_destroy(void)
-{
-    ui_Screen1_screen_destroy();
-    ui_base_screen_destroy();
+void ui_destroy(void) {
+  ui_Screen1_screen_destroy();
+  ui_base_screen_destroy();
+  ui_start_menu_destroy();
 }
