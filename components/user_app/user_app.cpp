@@ -3,6 +3,7 @@
 #include <esp_log.h>
 #include <freertos/FreeRTOS.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "lvgl_bsp.h"
 #include "rtc_bsp.h"
@@ -14,6 +15,35 @@ constexpr uint8_t kPcf85063Address = 0x51;
 const char *TAG = "UserApp";
 esp_err_t rtc_init_result = ESP_ERR_INVALID_STATE;
 bool rtc_read_error_logged = false;
+bool rtc_default_time_set = false;
+bool rtc_default_time_error_logged = false;
+
+bool GetBuildTime(rtcTimeStruct_t *time) {
+  char month_name[4] = {};
+  int year = 0;
+  int hour = 0;
+  int minute = 0;
+  int second = 0;
+  if (sscanf(__DATE__, "%3s %d %d", month_name, &time->day, &year) != 3 ||
+      sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second) != 3) {
+    return false;
+  }
+
+  static const char *const months[] = {"Jan", "Feb", "Mar", "Apr",
+                                       "May", "Jun", "Jul", "Aug",
+                                       "Sep", "Oct", "Nov", "Dec"};
+  for (size_t i = 0; i < sizeof(months) / sizeof(months[0]); ++i) {
+    if (strncmp(month_name, months[i], sizeof(month_name)) == 0) {
+      time->month = static_cast<int>(i) + 1;
+      time->year = year;
+      time->hour = hour;
+      time->minute = minute;
+      time->second = second;
+      return true;
+    }
+  }
+  return false;
+}
 
 }  // namespace
 
@@ -49,6 +79,30 @@ void Lvgl_LoopTask(void *arg) {
         ESP_LOGE(TAG, "Failed to read time from PCF85063: %s",
                  esp_err_to_name(err));
         rtc_read_error_logged = true;
+      }
+      if (err == ESP_ERR_INVALID_STATE && !rtc_default_time_set) {
+        rtcTimeStruct_t default_time = {};
+        if (!GetBuildTime(&default_time)) {
+          if (!rtc_default_time_error_logged) {
+            ESP_LOGE(TAG, "Failed to parse build timestamp for RTC default");
+            rtc_default_time_error_logged = true;
+          }
+        } else {
+          const esp_err_t set_err =
+              Rtc_SetTime(default_time.year, default_time.month, default_time.day,
+                          default_time.hour, default_time.minute,
+                          default_time.second);
+          if (set_err == ESP_OK) {
+            rtc_default_time_set = true;
+            rtc_default_time_error_logged = false;
+            ESP_LOGW(TAG,
+                     "RTC time was invalid; initialized it from build timestamp");
+          } else if (!rtc_default_time_error_logged) {
+            ESP_LOGE(TAG, "Failed to set default RTC time: %s",
+                     esp_err_to_name(set_err));
+            rtc_default_time_error_logged = true;
+          }
+        }
       }
     }
     vTaskDelay(pdMS_TO_TICKS(1000));
