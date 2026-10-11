@@ -14,7 +14,7 @@ void ui_base_screen_init(void) {
 
   /*Add time label*/
   ui_time_label = lv_label_create(ui_base_screen);
-  lv_label_set_text(ui_time_label, "12:00");
+  lv_label_set_text(ui_time_label, "--:--:--");
   lv_obj_align(ui_time_label, LV_ALIGN_TOP_MID, 0, 10);
 
   ui_base_container = lv_obj_create(ui_base_screen);
@@ -35,6 +35,8 @@ extern void ui_base_screen_set_widget(lv_obj_t *widget) {
   lv_obj_set_parent(widget, ui_base_container);
 }
 
-void ui_title_set_time() {
-  
+void ui_title_set_time(const char *time_text) {
+  if (ui_time_label && time_text) {
+    lv_label_set_text(ui_time_label, time_text);
+  }
 }

@@ -13,7 +13,7 @@ extern void ui_base_screen_init(void);
 extern void ui_base_screen_destroy(void);
 extern void ui_base_screen_set_widget(lv_obj_t *widget);
 
-extern void ui_title_set_time();
+extern void ui_title_set_time(const char *time_text);
 
 #ifdef __cplusplus
 } /*extern "C"*/

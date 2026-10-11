@@ -9,7 +9,7 @@
 
 DisplayPort RlcdPort(12, 11, 5, 40, 41, LCD_WIDTH, LCD_HEIGHT);
 
-I2cMasterBus i2c(ESP32_I2C_SDA_PIN,ESP32_I2C_SCL_PIN, 0);
+I2cMasterBus i2c(ESP32_I2C_SCL_PIN, ESP32_I2C_SDA_PIN, 0);
 
 static void Lvgl_FlushCallback(lv_disp_drv_t *drv, const lv_area_t *area,
                                lv_color_t *color_map) {
@@ -28,7 +28,7 @@ static void Lvgl_FlushCallback(lv_disp_drv_t *drv, const lv_area_t *area,
 
 extern "C" void app_main(void) {
 
-  UserApp_AppInit();
+  UserApp_AppInit(&i2c);
   RlcdPort.RLCD_Init();
   Lvgl_PortInit(400, 300, Lvgl_FlushCallback);
   if (Lvgl_lock(-1)) {

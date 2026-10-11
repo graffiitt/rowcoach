@@ -5,7 +5,17 @@
 #include <stdio.h>
 
 #include "lvgl_bsp.h"
+#include "rtc_bsp.h"
 #include "ui.h"
+
+namespace {
+
+constexpr uint8_t kPcf85063Address = 0x51;
+const char *TAG = "UserApp";
+esp_err_t rtc_init_result = ESP_ERR_INVALID_STATE;
+bool rtc_read_error_logged = false;
+
+}  // namespace
 
 void Lvgl_LoopTask(void *arg) {
 
@@ -20,11 +30,38 @@ void Lvgl_LoopTask(void *arg) {
   }
 
   for (;;) {
-    vTaskDelay(pdMS_TO_TICKS(1500));
+    if (rtc_init_result == ESP_OK) {
+      rtcTimeStruct_t time = {};
+      const esp_err_t err = Rtc_GetTime(&time);
+      if (err == ESP_OK) {
+        char time_text[9];
+        snprintf(time_text, sizeof(time_text), "%02d:%02d:%02d", time.hour,
+                 time.minute, time.second);
+        if (Lvgl_lock(-1)) {
+          ui_title_set_time(time_text);
+          Lvgl_unlock();
+        }
+        if (rtc_read_error_logged) {
+          ESP_LOGI(TAG, "RTC communication recovered");
+          rtc_read_error_logged = false;
+        }
+      } else if (!rtc_read_error_logged) {
+        ESP_LOGE(TAG, "Failed to read time from PCF85063: %s",
+                 esp_err_to_name(err));
+        rtc_read_error_logged = true;
+      }
+    }
+    vTaskDelay(pdMS_TO_TICKS(1000));
   }
 }
 
-void UserApp_AppInit() {}
+void UserApp_AppInit(I2cMasterBus *i2c_bus) {
+  rtc_init_result = Rtc_Setup(i2c_bus, kPcf85063Address);
+  if (rtc_init_result != ESP_OK) {
+    ESP_LOGE(TAG, "Failed to initialize PCF85063: %s",
+             esp_err_to_name(rtc_init_result));
+  }
+}
 
 void UserApp_UiInit() { ui_init(); }
 
