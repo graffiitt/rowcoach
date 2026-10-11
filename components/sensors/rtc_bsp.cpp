@@ -1,5 +1,7 @@
 #include "rtc_bsp.h"
 
+#include <cstdio>
+#include <cstring>
 #include <driver/i2c_master.h>
 
 namespace {
@@ -7,7 +9,6 @@ namespace {
 constexpr uint8_t kControl1Register = 0x00;
 constexpr uint8_t kSecondsRegister = 0x04;
 constexpr uint8_t kStopBit = 1 << 5;
-constexpr uint8_t kOscillatorStopBit = 1 << 7;
 constexpr uint8_t kDateTimeRegisterCount = 7;
 
 I2cMasterBus *rtc_bus = nullptr;
@@ -36,7 +37,40 @@ esp_err_t WriteDateTime(uint8_t *date_time) {
       rtc_device, kSecondsRegister, date_time, kDateTimeRegisterCount));
 }
 
-}  // namespace
+esp_err_t SetBuildTime() {
+  static constexpr const char *kMonths[] = {"Jan", "Feb", "Mar", "Apr",
+                                             "May", "Jun", "Jul", "Aug",
+                                             "Sep", "Oct", "Nov", "Dec"};
+  char month_name[4] = {};
+  int day = 0;
+  int year = 0;
+  int hour = 0;
+  int minute = 0;
+  int second = 0;
+  if (std::sscanf(__DATE__, "%3s %d %d", month_name, &day, &year) != 3 ||
+      std::sscanf(__TIME__, "%d:%d:%d", &hour, &minute, &second) != 3) {
+    return ESP_ERR_INVALID_RESPONSE;
+  }
+
+  int month = 0;
+  for (int i = 0; i < 12; ++i) {
+    if (std::strncmp(month_name, kMonths[i], 3) == 0) {
+      month = i + 1;
+      break;
+    }
+  }
+  if (month == 0) {
+    return ESP_ERR_INVALID_RESPONSE;
+  }
+
+  return Rtc_SetTime(static_cast<uint16_t>(year), static_cast<uint8_t>(month),
+                     static_cast<uint8_t>(day), static_cast<uint8_t>(hour),
+                     static_cast<uint8_t>(minute),
+                     static_cast<uint8_t>(second));
+}
+
+} // namespace
+
 
 esp_err_t Rtc_Setup(I2cMasterBus *i2cbus, uint8_t dev_addr) {
   if (i2cbus == nullptr) {
@@ -51,7 +85,7 @@ esp_err_t Rtc_Setup(I2cMasterBus *i2cbus, uint8_t dev_addr) {
   device_config.device_address = dev_addr;
   device_config.scl_speed_hz = 100000;
   esp_err_t err = i2c_master_bus_add_device(i2cbus->Get_I2cBusHandle(),
-                                             &device_config, &rtc_device);
+                                            &device_config, &rtc_device);
   if (err != ESP_OK) {
     return err;
   }
@@ -69,7 +103,16 @@ esp_err_t Rtc_Setup(I2cMasterBus *i2cbus, uint8_t dev_addr) {
     err = static_cast<esp_err_t>(
         rtc_bus->i2c_write_buff(rtc_device, kControl1Register, &control1, 1));
   }
-  return err;
+
+  if (err != ESP_OK) {
+    return err;
+  }
+
+  rtcTimeStruct_t time = {};
+  if (Rtc_GetTime(&time) == ESP_OK) {
+    return ESP_OK;
+  }
+  return SetBuildTime();
 }
 
 esp_err_t Rtc_SetTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour,
@@ -80,8 +123,13 @@ esp_err_t Rtc_SetTime(uint16_t year, uint8_t month, uint8_t day, uint8_t hour,
   }
 
   uint8_t date_time[kDateTimeRegisterCount] = {
-      ToBcd(second), ToBcd(minute), ToBcd(hour), ToBcd(day), 0,
-      ToBcd(month),  ToBcd(static_cast<uint8_t>(year % 100))};
+      ToBcd(second),
+      ToBcd(minute),
+      ToBcd(hour),
+      ToBcd(day),
+      0,
+      ToBcd(month),
+      ToBcd(static_cast<uint8_t>(year % 100))};
   return WriteDateTime(date_time);
 }
 
@@ -99,7 +147,7 @@ esp_err_t Rtc_GetTime(rtcTimeStruct_t *time) {
   if (err != ESP_OK) {
     return err;
   }
-  if ((date_time[0] & kOscillatorStopBit) != 0) {
+  if ((date_time[0] & 0x80) != 0) {
     return ESP_ERR_INVALID_STATE;
   }
 

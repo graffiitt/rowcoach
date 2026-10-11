@@ -4,7 +4,7 @@
 #include "board.h"
 
 extern "C" void app_main(void) {
-  ESP_ERROR_CHECK(Board_Init());
-  ESP_ERROR_CHECK(AppController_Init());
+  Board_Init();
+  AppController_Init();
   ESP_ERROR_CHECK(AppController_Start());
 }

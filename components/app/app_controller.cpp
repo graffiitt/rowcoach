@@ -14,8 +14,6 @@
 #include "ui.h"
 
 namespace {
-
-constexpr uint8_t kPcf85063Address = 0x51;
 constexpr uint32_t kMetricsPeriodMs = 1000;
 constexpr uint32_t kTaskStackSize = 4096;
 constexpr UBaseType_t kTaskPriority = 2;
@@ -23,15 +21,10 @@ constexpr BaseType_t kTaskCore = 1;
 const char *TAG = "AppController";
 
 AppState app_state;
-esp_err_t rtc_init_result = ESP_ERR_INVALID_STATE;
 bool rtc_read_error_logged = false;
 bool started = false;
 
 void UpdateFromRtc() {
-  if (rtc_init_result != ESP_OK) {
-    return;
-  }
-
   rtcTimeStruct_t time = {};
   const esp_err_t err = Rtc_GetTime(&time);
   if (err != ESP_OK) {
@@ -72,23 +65,9 @@ void AppTask(void *argument) {
   }
 }
 
-}  // namespace
+} // namespace
 
-esp_err_t AppController_Init() {
-  rtc_init_result = Rtc_Setup(&Board_GetI2cBus(), kPcf85063Address);
-  if (rtc_init_result != ESP_OK) {
-    ESP_LOGE(TAG, "PCF85063 initialization failed: %s",
-             esp_err_to_name(rtc_init_result));
-  }
-
-  if (Lvgl_lock(-1)) {
-    ui_init();
-    Lvgl_unlock();
-  } else {
-    return ESP_FAIL;
-  }
-  return ESP_OK;
-}
+void AppController_Init() { ui_init(); }
 
 esp_err_t AppController_Start() {
   if (started) {

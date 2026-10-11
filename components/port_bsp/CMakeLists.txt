@@ -2,7 +2,6 @@ idf_component_register(
     SRCS 
     "display_bsp.cpp" 
     "i2c_bsp.cpp"
-    "rtc_bsp.cpp"
     REQUIRES
     driver
     esp_lcd
