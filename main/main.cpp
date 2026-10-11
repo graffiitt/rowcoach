@@ -1,39 +1,10 @@
-#include <esp_log.h>
-#include <freertos/FreeRTOS.h>
+#include <esp_err.h>
 
-#include "display_bsp.h"
-#include "i2c_bsp.h"
-#include "lvgl_bsp.h"
-#include "user_app.h"
-#include "user_config.h"
-
-DisplayPort RlcdPort(12, 11, 5, 40, 41, LCD_WIDTH, LCD_HEIGHT);
-
-I2cMasterBus i2c(ESP32_I2C_SCL_PIN, ESP32_I2C_SDA_PIN, 0);
-
-static void Lvgl_FlushCallback(lv_disp_drv_t *drv, const lv_area_t *area,
-                               lv_color_t *color_map) {
-  uint16_t *buffer = (uint16_t *)color_map;
-  for (int y = area->y1; y <= area->y2; y++) {
-    for (int x = area->x1; x <= area->x2; x++) {
-      uint8_t color = (*buffer < 0x7fff) ? ColorBlack : ColorWhite;
-      RlcdPort.RLCD_SetPixel(x, y, color);
-      buffer++;
-    }
-  }
-  RlcdPort.RLCD_Display();
-  lv_disp_flush_ready(drv);
-}
-
+#include "app_controller.h"
+#include "board.h"
 
 extern "C" void app_main(void) {
-
-  UserApp_AppInit(&i2c);
-  RlcdPort.RLCD_Init();
-  Lvgl_PortInit(400, 300, Lvgl_FlushCallback);
-  if (Lvgl_lock(-1)) {
-    UserApp_UiInit();
-    Lvgl_unlock();
-  }
-  UserApp_TaskInit();
+  ESP_ERROR_CHECK(Board_Init());
+  ESP_ERROR_CHECK(AppController_Init());
+  ESP_ERROR_CHECK(AppController_Start());
 }

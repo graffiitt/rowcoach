@@ -3,7 +3,7 @@ idf_component_register(
     "display_bsp.cpp" 
     "i2c_bsp.cpp"
     "rtc_bsp.cpp"
-    PRIV_REQUIRES 
+    REQUIRES
     driver
     esp_lcd
     INCLUDE_DIRS 
