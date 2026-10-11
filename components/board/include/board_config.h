@@ -1,5 +1,7 @@
-#ifndef USER_CONFIG_H
-#define USER_CONFIG_H
+#ifndef BOARD_CONFIG_H
+#define BOARD_CONFIG_H
+
+#include <driver/gpio.h>
 
 /*lcd init*/
 #define LCD_WIDTH 400
