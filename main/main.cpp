@@ -2,11 +2,14 @@
 #include <freertos/FreeRTOS.h>
 
 #include "display_bsp.h"
+#include "i2c_bsp.h"
 #include "lvgl_bsp.h"
 #include "user_app.h"
 #include "user_config.h"
 
 DisplayPort RlcdPort(12, 11, 5, 40, 41, LCD_WIDTH, LCD_HEIGHT);
+
+I2cMasterBus i2c(ESP32_I2C_SDA_PIN,ESP32_I2C_SCL_PIN, 0);
 
 static void Lvgl_FlushCallback(lv_disp_drv_t *drv, const lv_area_t *area,
                                lv_color_t *color_map) {
@@ -21,6 +24,7 @@ static void Lvgl_FlushCallback(lv_disp_drv_t *drv, const lv_area_t *area,
   RlcdPort.RLCD_Display();
   lv_disp_flush_ready(drv);
 }
+
 
 extern "C" void app_main(void) {
 
