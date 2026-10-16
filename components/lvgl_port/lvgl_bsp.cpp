@@ -1,5 +1,7 @@
 #include "lvgl_bsp.h"
+#include <atomic>
 #include <cstddef>
+#include <esp_err.h>
 #include <esp_log.h>
 #include <esp_timer.h>
 #include <freertos/FreeRTOS.h>
@@ -22,6 +24,18 @@ static SemaphoreHandle_t lvgl_mux = NULL;
 static lv_indev_drv_t btn_drv;
 lv_indev_t *btn_indev = NULL;
 
+
+constexpr size_t kButtonCount = 4;
+constexpr uint32_t kButtonKeys[kButtonCount] = {
+    LV_KEY_PREV, LV_KEY_NEXT, LV_KEY_ENTER, LV_KEY_ESC};
+std::atomic<bool> button_pressed[kButtonCount] = {};
+uint8_t button_ids[kButtonCount] = {};
+
+void set_button_state(void *usr_data, bool pressed) {
+  const auto button_id = *static_cast<const uint8_t *>(usr_data);
+  button_pressed[button_id].store(pressed, std::memory_order_relaxed);
+} 
+
 const button_config_t btn_cfg = {0, 0};
 const button_gpio_config_t btn_gpio_cfg[4] = {{.gpio_num = 0, // key
                                                .active_level = 0,
@@ -39,15 +53,31 @@ const button_gpio_config_t btn_gpio_cfg[4] = {{.gpio_num = 0, // key
                                                .active_level = 0,
                                                .enable_power_save = false,
                                                .disable_pull = false}};
-button_handle_t gpio_btn[4] = {NULL};
+button_handle_t gpio_btn[kButtonCount] = {NULL};
 
 static void button_push_cb(void *arg, void *usr_data) {
+  set_button_state(usr_data, true);
+}
 
+static void button_release_cb(void *arg, void *usr_data) {
+  set_button_state(usr_data, false);
 }
 
 static void lv_button_cb(struct _lv_indev_drv_t *indev_drv,
                          lv_indev_data_t *data) {
+  static uint32_t last_key = LV_KEY_PREV;
 
+  data->continue_reading = false;
+  data->state = LV_INDEV_STATE_RELEASED;
+  data->key = last_key;
+  for (size_t i = 0; i < kButtonCount; ++i) {
+    if (button_pressed[i].load(std::memory_order_relaxed)) {
+      last_key = kButtonKeys[i];
+      data->key = last_key;
+      data->state = LV_INDEV_STATE_PRESSED;
+      break;
+    }
+  }
 }
 
 static void Increase_lvgl_tick(void *arg) { lv_tick_inc(LVGL_TICK_PERIOD_MS); }
@@ -91,19 +121,17 @@ void Lvgl_PortInit(int width, int height, DispFlushCb flush_cb) {
   lv_disp_draw_buf_init(&disp_buf, buffer1, buffer2, width * height);
   ESP_LOGI(TAG, "Register display driver to LVGL");
 
-  esp_err_t ret =
-      iot_button_new_gpio_device(&btn_cfg, &btn_gpio_cfg[0], &gpio_btn[0]);
-  if (ret != ESP_OK) {
-    ESP_LOGE("MAIN", "Button create failed");
+  for (size_t i = 0; i < kButtonCount; ++i) {
+    button_ids[i] = static_cast<uint8_t>(i);
+    ESP_ERROR_CHECK(
+        iot_button_new_gpio_device(&btn_cfg, &btn_gpio_cfg[i], &gpio_btn[i]));
+    ESP_ERROR_CHECK(iot_button_register_cb(gpio_btn[i], BUTTON_PRESS_DOWN,
+                                           NULL, button_push_cb,
+                                           &button_ids[i]));
+    ESP_ERROR_CHECK(iot_button_register_cb(gpio_btn[i], BUTTON_PRESS_UP, NULL,
+                                           button_release_cb, &button_ids[i]));
   }
 
-  iot_button_register_cb(gpio_btn[0], BUTTON_SINGLE_CLICK, NULL, button_push_cb,
-                        NULL);
-  //   iot_button_register_cb(gpio_btn[0], BUTTON_DOUBLE_CLICK, NULL,
-  //   button_push_cb,
-  //                          &state_button[0]);
-  iot_button_register_cb(gpio_btn[0], BUTTON_PRESS_DOWN, NULL, button_push_cb,
-                         NULL);
 
   lv_indev_drv_init(&btn_drv);
   btn_drv.type = LV_INDEV_TYPE_KEYPAD;
