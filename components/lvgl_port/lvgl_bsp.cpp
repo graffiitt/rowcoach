@@ -23,36 +23,31 @@ static lv_indev_drv_t btn_drv;
 lv_indev_t *btn_indev = NULL;
 
 const button_config_t btn_cfg = {0, 0};
-const button_gpio_config_t btn_gpio_cfg[4] = {{.gpio_num = 18, // key
+const button_gpio_config_t btn_gpio_cfg[4] = {{.gpio_num = 0, // key
+                                               .active_level = 0,
+                                               .enable_power_save = false,
+                                               .disable_pull = false},
+                                              {.gpio_num = 1, // key
+                                               .active_level = 0,
+                                               .enable_power_save = false,
+                                               .disable_pull = false},
+                                              {.gpio_num = 2, // key
+                                               .active_level = 0,
+                                               .enable_power_save = false,
+                                               .disable_pull = false},
+                                              {.gpio_num = 3, // key
                                                .active_level = 0,
                                                .enable_power_save = false,
                                                .disable_pull = false}};
 button_handle_t gpio_btn[4] = {NULL};
-struct state_button_t {
-  uint32_t key;
-  lv_indev_state_t state;
-} state_button[5]{{LV_KEY_ENTER, LV_INDEV_STATE_RELEASED}};
 
 static void button_push_cb(void *arg, void *usr_data) {
-  // button_event_t event = iot_button_get_event((button_handle_t)arg);
-  // switch ((int)event) {
-  // case BUTTON_PRESS_DOWN:
-  //   state_button[0].state = LV_INDEV_STATE_PRESSED;
-  //   break;
-  // case BUTTON_SINGLE_CLICK:
-  //   state_button[0].state = LV_INDEV_STATE_RELEASED;
-  //   break;
-  // }
-  // state_button[0].key = ((state_button_t *)usr_data)->key;
+
 }
 
 static void lv_button_cb(struct _lv_indev_drv_t *indev_drv,
                          lv_indev_data_t *data) {
-  if (state_button[0].key != 0) {
-    data->key = state_button[0].key;
-    data->state = state_button[0].state;
-  } else
-    data->state = LV_INDEV_STATE_RELEASED;
+
 }
 
 static void Increase_lvgl_tick(void *arg) { lv_tick_inc(LVGL_TICK_PERIOD_MS); }
@@ -103,12 +98,12 @@ void Lvgl_PortInit(int width, int height, DispFlushCb flush_cb) {
   }
 
   iot_button_register_cb(gpio_btn[0], BUTTON_SINGLE_CLICK, NULL, button_push_cb,
-                         &state_button[0]);
+                        NULL);
   //   iot_button_register_cb(gpio_btn[0], BUTTON_DOUBLE_CLICK, NULL,
   //   button_push_cb,
   //                          &state_button[0]);
   iot_button_register_cb(gpio_btn[0], BUTTON_PRESS_DOWN, NULL, button_push_cb,
-                         &state_button[0]);
+                         NULL);
 
   lv_indev_drv_init(&btn_drv);
   btn_drv.type = LV_INDEV_TYPE_KEYPAD;
@@ -122,7 +117,7 @@ void Lvgl_PortInit(int width, int height, DispFlushCb flush_cb) {
   disp_drv.full_refresh = 1;
   disp_drv.antialiasing = 0;
   disp_drv.draw_buf = &disp_buf;
-  lv_disp_drv_register(&disp_drv); 
+  lv_disp_drv_register(&disp_drv);
 
   ESP_LOGI(TAG, "Install LVGL tick timer");
   esp_timer_create_args_t lvgl_tick_timer_args = {};

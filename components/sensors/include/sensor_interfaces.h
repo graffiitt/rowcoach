@@ -4,6 +4,10 @@
 
 namespace sensors {
 
+struct BoardParam {
+  uint8_t battVoltage;
+};
+
 struct ImuSample {
   int16_t accel_x_mg;
   int16_t accel_y_mg;
@@ -26,7 +30,6 @@ struct GnssFix {
 struct HeartRateMeasurement {
   uint16_t bpm;
   bool connected;
-  uint64_t timestamp_us;
 };
 
 }  // namespace sensors

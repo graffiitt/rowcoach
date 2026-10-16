@@ -15,7 +15,8 @@ void ui_base_screen_init(void) {
   /*Add time label*/
   ui_time_label = lv_label_create(ui_base_screen);
   lv_label_set_text(ui_time_label, "--:--:--");
-  lv_obj_align(ui_time_label, LV_ALIGN_TOP_MID, 0, 10);
+  lv_obj_align(ui_time_label, LV_ALIGN_TOP_MID, 0, 5);
+  lv_obj_set_style_text_font(ui_time_label, &ui_font_NUMERIC1, LV_PART_MAIN | LV_STATE_DEFAULT);
 
   ui_base_container = lv_obj_create(ui_base_screen);
   lv_obj_clear_flag(ui_base_container, LV_OBJ_FLAG_SCROLLABLE); /// Flags
